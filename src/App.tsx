@@ -1,25 +1,9 @@
-import { ReactNode, useState } from "react";
+import { useState } from "react";
 
-const assets = import.meta.glob("./assets/**/*.svg", { as: "url" });
-const EyeSVGs: string[] = [];
-const EyeBrowsSVGs: string[] = [];
-const HeadSVGs: string[] = [];
-const MouthSVGs: string[] = [];
-const DetailsSVGs: string[] = [];
-for (const url in assets) {
-  const path = await assets[url]();
-  if (path.includes("eyes/")) {
-    EyeSVGs.push(path);
-  } else if (path.includes("eyebrows/")) {
-    EyeBrowsSVGs.push(path);
-  } else if (path.includes("head/")) {
-    HeadSVGs.push(path);
-  } else if (path.includes("mouth/")) {
-    MouthSVGs.push(path);
-  } else if (path.includes("details/")) {
-    DetailsSVGs.push(path);
-  }
-}
+const assets = import.meta.glob("./assets/**/*.svg", {
+  as: "url",
+  eager: true,
+});
 
 function Area({
   title,
@@ -54,6 +38,27 @@ function Area({
 }
 
 function App() {
+  const EyeSVGs: string[] = [];
+  const EyeBrowsSVGs: string[] = [];
+  const HeadSVGs: string[] = [];
+  const MouthSVGs: string[] = [];
+  const DetailsSVGs: string[] = [];
+
+  for (const module in assets) {
+    const path = assets[module];
+    if (module.includes("eyes/")) {
+      EyeSVGs.push(path);
+    } else if (module.includes("eyebrows/")) {
+      EyeBrowsSVGs.push(path);
+    } else if (module.includes("head/")) {
+      HeadSVGs.push(path);
+    } else if (module.includes("mouth/")) {
+      MouthSVGs.push(path);
+    } else if (module.includes("details/")) {
+      DetailsSVGs.push(path);
+    }
+  }
+
   const [eyes, setEyes] = useState<number>(0);
   const [head, setHead] = useState<number>(0);
   const [eyebrows, setEyebrows] = useState<number>(0);
