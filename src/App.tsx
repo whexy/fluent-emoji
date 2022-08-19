@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState } from 'react';
 
-const assets = import.meta.glob("./assets/**/*.svg", {
-  as: "url",
+const assets = import.meta.glob('./assets/**/*.svg', {
+  as: 'url',
   eager: true,
 });
 
@@ -17,19 +17,19 @@ function Area({
   setSelected: React.Dispatch<React.SetStateAction<number>>;
 }) {
   return (
-    <div className="rounded-lg p-8 bg-white my-5">
-      <h2 className="text-xl pb-2">{title}</h2>
+    <div className="my-5 rounded-lg bg-white p-8">
+      <h2 className="pb-2 text-xl">{title}</h2>
       <div className="flex flex-wrap gap-2">
         {svg.map((path, idx) => (
           <div key={idx} onClick={() => setSelected(idx)}>
             <SelectButton selected={selected == idx}>
-              <img src={path} className="w-12 h-12" />
+              <img src={path} className="h-12 w-12" />
             </SelectButton>
           </div>
         ))}
         <div onClick={() => setSelected(-1)}>
           <SelectButton selected={selected == -1}>
-            <div className="w-12 h-12" />
+            <div className="h-12 w-12" />
           </SelectButton>
         </div>
       </div>
@@ -46,15 +46,15 @@ function App() {
 
   for (const module in assets) {
     const path = assets[module];
-    if (module.includes("eyes/")) {
+    if (module.includes('eyes/')) {
       EyeSVGs.push(path);
-    } else if (module.includes("eyebrows/")) {
+    } else if (module.includes('eyebrows/')) {
       EyeBrowsSVGs.push(path);
-    } else if (module.includes("head/")) {
+    } else if (module.includes('head/')) {
       HeadSVGs.push(path);
-    } else if (module.includes("mouth/")) {
+    } else if (module.includes('mouth/')) {
       MouthSVGs.push(path);
-    } else if (module.includes("details/")) {
+    } else if (module.includes('details/')) {
       DetailsSVGs.push(path);
     }
   }
@@ -65,10 +65,23 @@ function App() {
   const [mouth, setMouth] = useState<number>(0);
   const [details, setDetails] = useState<number>(0);
 
+  const goWild = () => {
+    const getRandom = (min: number, max: number) => {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min)) + min;
+    };
+    setEyes(getRandom(-1, EyeSVGs.length));
+    setHead(getRandom(0, HeadSVGs.length));
+    setEyebrows(getRandom(-1, EyeBrowsSVGs.length));
+    setMouth(getRandom(-1, MouthSVGs.length));
+    setDetails(getRandom(-1, DetailsSVGs.length));
+  };
+
   return (
-    <div className="bg-gray-100 flex justify-center p-4 gap-4">
+    <div className="flex justify-center gap-4 bg-gray-100 p-4">
       <div className="max-w-3xl">
-        <h1 className="text-3xl font-bold text-center pt-8">
+        <h1 className="pt-8 text-center text-3xl font-bold">
           Fluent Emoji Maker
         </h1>
         <Area
@@ -101,36 +114,43 @@ function App() {
           selected={details}
           setSelected={setDetails}
         />
+        <div className="">
+          <button
+            className="rounded-lg bg-white px-4 py-2"
+            onClick={() => goWild()}>
+            Go Wild
+          </button>
+        </div>
       </div>
-      <div className="flex-shrink-0 sticky w-36 h-36 bg-white rounded-lg top-28">
+      <div className="sticky top-28 h-36 w-36 flex-shrink-0 rounded-lg bg-white">
         {head >= 0 && (
           <img
             src={HeadSVGs[head]}
-            className="absolute w-20 h-20 top-0 right-0 left-0 bottom-0 m-auto"
+            className="absolute top-0 right-0 left-0 bottom-0 m-auto h-20 w-20"
           />
         )}
         {eyes >= 0 && (
           <img
             src={EyeSVGs[eyes]}
-            className="absolute w-20 h-20 top-0 right-0 left-0 bottom-0 m-auto"
+            className="absolute top-0 right-0 left-0 bottom-0 m-auto h-20 w-20"
           />
         )}
         {eyebrows >= 0 && (
           <img
             src={EyeBrowsSVGs[eyebrows]}
-            className="absolute w-20 h-20 top-0 right-0 left-0 bottom-0 m-auto"
+            className="absolute top-0 right-0 left-0 bottom-0 m-auto h-20 w-20"
           />
         )}
         {mouth >= 0 && (
           <img
             src={MouthSVGs[mouth]}
-            className="absolute w-20 h-20 top-0 right-0 left-0 bottom-0 m-auto"
+            className="absolute top-0 right-0 left-0 bottom-0 m-auto h-20 w-20"
           />
         )}
         {details >= 0 && (
           <img
             src={DetailsSVGs[details]}
-            className="absolute w-20 h-20 top-0 right-0 left-0 bottom-0 m-auto"
+            className="absolute top-0 right-0 left-0 bottom-0 m-auto h-20 w-20"
           />
         )}
       </div>
@@ -147,10 +167,9 @@ const SelectButton = ({
 }) => {
   return (
     <div
-      className={`p-1 rounded-lg shadow-md transition-all hover:ring ring-red-500 ${
-        selected ? "bg-red-200 ring" : "bg-stone-100"
-      }`}
-    >
+      className={`rounded-lg p-1 shadow-md ring-red-500 transition-all hover:ring ${
+        selected ? 'bg-red-200 ring' : 'bg-stone-100'
+      }`}>
       {children}
     </div>
   );
