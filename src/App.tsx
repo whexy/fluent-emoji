@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 const assets = import.meta.glob('./assets/**/*.svg', {
@@ -80,7 +80,7 @@ function App() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const getInt = (s: string) => parseInt(params.get(s) || '-1');
+    const getInt = (s: string) => parseInt(params.get(s) ?? '0');
 
     const newCombination: Combination = {
       eyes: getInt('eyes'),
@@ -143,75 +143,79 @@ function App() {
       <h1 className="pt-8 text-center text-3xl font-bold">
         Fluent Emoji Maker
       </h1>
-      <div className="flex items-start justify-center gap-4 p-4">
-        <div className="max-w-3xl">
-          <Area
-            title="Head"
-            svg={HeadSVGs}
-            selected={combination.head}
-            setSelected={(idx: number) => {
-              setCombination((c) => {
-                return { ...c, head: idx };
-              });
-            }}
-          />
-          <Area
-            title="Eyes"
-            svg={EyeSVGs}
-            selected={combination.eyes}
-            setSelected={(idx: number) => {
-              setCombination((c) => {
-                return { ...c, eyes: idx };
-              });
-            }}
-          />
-          <Area
-            title="Eyebrows"
-            svg={EyeBrowsSVGs}
-            selected={combination.eyebrows}
-            setSelected={(idx: number) => {
-              setCombination((c) => {
-                return { ...c, eyebrows: idx };
-              });
-            }}
-          />
-          <Area
-            title="Mouth"
-            svg={MouthSVGs}
-            selected={combination.mouth}
-            setSelected={(idx: number) => {
-              setCombination((c) => {
-                return { ...c, mouth: idx };
-              });
-            }}
-          />
-          <Area
-            title="Details"
-            svg={DetailsSVGs}
-            selected={combination.details}
-            setSelected={(idx: number) => {
-              setCombination((c) => {
-                return { ...c, details: idx };
-              });
-            }}
-          />
-        </div>
-        <div className="sticky top-28 ">
-          <div className="h-[144px] w-[144px] flex-shrink-0 rounded-lg bg-white">
-            {canvasURL === '' || <img src={canvasURL} className="object-fit" />}
-          </div>
-          <div className="flex flex-col space-y-2">
-            <button
-              className="mt-4 rounded-lg bg-white px-4 py-2"
-              onClick={() => goWild()}>
-              🤪 Go Wild
-            </button>
-            <CopyToClipboard
-              text={`${window.location.origin}?eyes=${combination.eyes}&head=${combination.head}&eyebrows=${combination.eyebrows}&mouth=${combination.mouth}&details=${combination.details}`}>
-              <button className="mt-4 rounded-lg bg-white px-4 py-2">
-                👯‍♀️ Share
+      <div className="mx-auto max-w-4xl p-4">
+        <div className="relative">
+          <div className="sticky top-4 mx-auto flex max-w-3xl justify-center space-x-4 rounded-lg border bg-white/40 p-4 shadow-md backdrop-blur backdrop-brightness-95">
+            <div className="h-[144px] w-[144px] rounded-lg">
+              {canvasURL === '' || (
+                <img src={canvasURL} className="object-fit" />
+              )}
+            </div>
+            <div className="flex flex-col space-y-2">
+              <button
+                className="mt-4 rounded-lg border bg-white px-4 py-2"
+                onClick={() => goWild()}>
+                🤪 Go Wild
               </button>
-            </CopyToClipboard>
+              <CopyToClipboard
+                text={`${window.location.origin}?eyes=${combination.eyes}&head=${combination.head}&eyebrows=${combination.eyebrows}&mouth=${combination.mouth}&details=${combination.details}`}>
+                <button className="mt-4 rounded-lg border bg-white px-4 py-2">
+                  👯‍♀️ Share
+                </button>
+              </CopyToClipboard>
+            </div>
+          </div>
+          <div className="mx-auto max-w-3xl">
+            <Area
+              title="Head"
+              svg={HeadSVGs}
+              selected={combination.head}
+              setSelected={(idx: number) => {
+                setCombination((c) => {
+                  return { ...c, head: idx };
+                });
+              }}
+            />
+            <Area
+              title="Eyes"
+              svg={EyeSVGs}
+              selected={combination.eyes}
+              setSelected={(idx: number) => {
+                setCombination((c) => {
+                  return { ...c, eyes: idx };
+                });
+              }}
+            />
+            <Area
+              title="Eyebrows"
+              svg={EyeBrowsSVGs}
+              selected={combination.eyebrows}
+              setSelected={(idx: number) => {
+                setCombination((c) => {
+                  return { ...c, eyebrows: idx };
+                });
+              }}
+            />
+            <Area
+              title="Mouth"
+              svg={MouthSVGs}
+              selected={combination.mouth}
+              setSelected={(idx: number) => {
+                setCombination((c) => {
+                  return { ...c, mouth: idx };
+                });
+              }}
+            />
+            <Area
+              title="Details"
+              svg={DetailsSVGs}
+              selected={combination.details}
+              setSelected={(idx: number) => {
+                setCombination((c) => {
+                  return { ...c, details: idx };
+                });
+              }}
+            />
           </div>
         </div>
       </div>
