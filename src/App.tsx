@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 const assets = import.meta.glob('./assets/**/*.svg', {
@@ -66,6 +66,8 @@ function App() {
   const [mouth, setMouth] = useState<number>(-1);
   const [details, setDetails] = useState<number>(-1);
 
+  const canvasInited = useRef(false);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const getInt = (s: string) => parseInt(params.get(s) || '-1');
@@ -75,29 +77,40 @@ function App() {
     setEyebrows(getInt('eyebrows'));
     setMouth(getInt('mouth'));
     setDetails(getInt('details'));
-    draw();
   }, []);
 
-  const draw = () => {
+  useLayoutEffect(() => {
+    if (canvasInited.current) return;
     var canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    var ctx = canvas.getContext('2d');
+    const dpr = 8;
+    var rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    canvasInited.current = true;
+    console.log('canvas init');
+  }, []);
+
+  useEffect(() => {
+    var canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    var ctx = canvas.getContext('2d');
     const drawElement = (idx: number, gallery: string[]) => {
       if (idx >= 0) {
         var image = new Image();
         image.src = gallery[idx];
         image.onload = () => {
-          canvas.getContext('2d')?.drawImage(image, 0, 0, 144, 144);
+          ctx?.drawImage(image, 0, 0, 1152, 1152);
         };
       }
     };
-    canvas.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height);
+    ctx?.clearRect(0, 0, canvas.width, canvas.height);
     drawElement(head, HeadSVGs);
     drawElement(eyes, EyeSVGs);
     drawElement(eyebrows, EyeBrowsSVGs);
     drawElement(mouth, MouthSVGs);
     drawElement(details, DetailsSVGs);
-  };
-
-  useEffect(() => draw(), [eyes, head, eyebrows, mouth, details]);
+    console.log('draw');
+  }, [eyes, head, eyebrows, mouth, details]);
 
   const goWild = () => {
     const getRandom = (min: number, max: number) => {
@@ -151,7 +164,12 @@ function App() {
       </div>
       <div className="sticky top-28 ">
         <div className="flex-shrink-0 rounded-lg bg-white">
-          <canvas id="canvas" height={144} width={144} />
+          <canvas
+            id="canvas"
+            height={144}
+            width={144}
+            className="h-[144px] w-[144px]"
+          />
         </div>
         <div className="flex flex-col space-y-2">
           <button
