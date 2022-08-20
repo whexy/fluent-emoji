@@ -15,7 +15,7 @@ function Area({
   title: string;
   svg: string[];
   selected: number;
-  setSelected: React.Dispatch<React.SetStateAction<number>>;
+  setSelected: (idx: number) => void;
 }) {
   return (
     <div className="my-5 rounded-lg bg-white p-8">
@@ -37,6 +37,14 @@ function Area({
     </div>
   );
 }
+
+type Combination = {
+  eyes: number;
+  eyebrows: number;
+  head: number;
+  mouth: number;
+  details: number;
+};
 
 function App() {
   const EyeSVGs: string[] = [];
@@ -60,57 +68,55 @@ function App() {
     }
   }
 
-  const [eyes, setEyes] = useState<number>(-1);
-  const [head, setHead] = useState<number>(-1);
-  const [eyebrows, setEyebrows] = useState<number>(-1);
-  const [mouth, setMouth] = useState<number>(-1);
-  const [details, setDetails] = useState<number>(-1);
+  const [combination, setCombination] = useState<Combination>({
+    eyes: -1,
+    eyebrows: -1,
+    head: -1,
+    mouth: -1,
+    details: -1,
+  });
 
-  const canvasInited = useRef(false);
+  const [canvasURL, setCanvasURL] = useState('');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const getInt = (s: string) => parseInt(params.get(s) || '-1');
 
-    setEyes(getInt('eyes'));
-    setHead(getInt('head'));
-    setEyebrows(getInt('eyebrows'));
-    setMouth(getInt('mouth'));
-    setDetails(getInt('details'));
-  }, []);
+    const newCombination: Combination = {
+      eyes: getInt('eyes'),
+      eyebrows: getInt('eyebrows'),
+      head: getInt('head'),
+      mouth: getInt('mouth'),
+      details: getInt('details'),
+    };
 
-  useLayoutEffect(() => {
-    if (canvasInited.current) return;
-    var canvas = document.getElementById('canvas') as HTMLCanvasElement;
-    var ctx = canvas.getContext('2d');
-    const dpr = 8;
-    var rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    canvasInited.current = true;
-    console.log('canvas init');
+    setCombination(newCombination);
   }, []);
 
   useEffect(() => {
-    var canvas = document.getElementById('canvas') as HTMLCanvasElement;
+    var canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 1024;
     var ctx = canvas.getContext('2d');
-    const drawElement = (idx: number, gallery: string[]) => {
+    const drawElement = async (idx: number, gallery: string[]) => {
       if (idx >= 0) {
         var image = new Image();
         image.src = gallery[idx];
-        image.onload = () => {
-          ctx?.drawImage(image, 0, 0, 1152, 1152);
-        };
+        await image.decode();
+        ctx?.drawImage(image, 0, 0, 1024, 1024);
       }
     };
-    ctx?.clearRect(0, 0, canvas.width, canvas.height);
-    drawElement(head, HeadSVGs);
-    drawElement(eyes, EyeSVGs);
-    drawElement(eyebrows, EyeBrowsSVGs);
-    drawElement(mouth, MouthSVGs);
-    drawElement(details, DetailsSVGs);
-    console.log('draw');
-  }, [eyes, head, eyebrows, mouth, details]);
+    const draw = async () => {
+      ctx?.clearRect(0, 0, canvas.width, canvas.height);
+      await drawElement(combination.head, HeadSVGs);
+      await drawElement(combination.eyes, EyeSVGs);
+      await drawElement(combination.eyebrows, EyeBrowsSVGs);
+      await drawElement(combination.mouth, MouthSVGs);
+      await drawElement(combination.details, DetailsSVGs);
+      setCanvasURL(canvas.toDataURL());
+    };
+    draw().catch(console.error);
+  }, [combination]);
 
   const goWild = () => {
     const getRandom = (min: number, max: number) => {
@@ -118,71 +124,95 @@ function App() {
       max = Math.floor(max);
       return Math.floor(Math.random() * (max - min)) + min;
     };
-    setEyes(getRandom(-1, EyeSVGs.length));
-    setHead(getRandom(0, HeadSVGs.length));
-    setEyebrows(getRandom(-1, EyeBrowsSVGs.length));
-    setMouth(getRandom(-1, MouthSVGs.length));
-    setDetails(getRandom(-1, DetailsSVGs.length));
+    const eyes = getRandom(-1, EyeSVGs.length);
+    const head = getRandom(0, HeadSVGs.length);
+    const eyebrows = getRandom(-1, EyeBrowsSVGs.length);
+    const mouth = getRandom(-1, MouthSVGs.length);
+    const details = getRandom(-1, DetailsSVGs.length);
+    setCombination({
+      eyes: eyes,
+      eyebrows: eyebrows,
+      head: head,
+      mouth: mouth,
+      details: details,
+    });
   };
 
   return (
-    <div className="flex items-start justify-center gap-4 bg-gray-100 p-4">
-      <div className="max-w-3xl">
-        <h1 className="pt-8 text-center text-3xl font-bold">
-          Fluent Emoji Maker
-        </h1>
-        <Area
-          title="Head"
-          svg={HeadSVGs}
-          selected={head}
-          setSelected={setHead}
-        />
-        <Area
-          title="Eyes"
-          svg={EyeSVGs}
-          selected={eyes}
-          setSelected={setEyes}
-        />
-        <Area
-          title="Eyebrows"
-          svg={EyeBrowsSVGs}
-          selected={eyebrows}
-          setSelected={setEyebrows}
-        />
-        <Area
-          title="Mouth"
-          svg={MouthSVGs}
-          selected={mouth}
-          setSelected={setMouth}
-        />
-        <Area
-          title="Details"
-          svg={DetailsSVGs}
-          selected={details}
-          setSelected={setDetails}
-        />
-      </div>
-      <div className="sticky top-28 ">
-        <div className="flex-shrink-0 rounded-lg bg-white">
-          <canvas
-            id="canvas"
-            height={144}
-            width={144}
-            className="h-[144px] w-[144px]"
+    <div className="bg-gray-100">
+      <h1 className="pt-8 text-center text-3xl font-bold">
+        Fluent Emoji Maker
+      </h1>
+      <div className="flex items-start justify-center gap-4 p-4">
+        <div className="max-w-3xl">
+          <Area
+            title="Head"
+            svg={HeadSVGs}
+            selected={combination.head}
+            setSelected={(idx: number) => {
+              setCombination((c) => {
+                return { ...c, head: idx };
+              });
+            }}
+          />
+          <Area
+            title="Eyes"
+            svg={EyeSVGs}
+            selected={combination.eyes}
+            setSelected={(idx: number) => {
+              setCombination((c) => {
+                return { ...c, eyes: idx };
+              });
+            }}
+          />
+          <Area
+            title="Eyebrows"
+            svg={EyeBrowsSVGs}
+            selected={combination.eyebrows}
+            setSelected={(idx: number) => {
+              setCombination((c) => {
+                return { ...c, eyebrows: idx };
+              });
+            }}
+          />
+          <Area
+            title="Mouth"
+            svg={MouthSVGs}
+            selected={combination.mouth}
+            setSelected={(idx: number) => {
+              setCombination((c) => {
+                return { ...c, mouth: idx };
+              });
+            }}
+          />
+          <Area
+            title="Details"
+            svg={DetailsSVGs}
+            selected={combination.details}
+            setSelected={(idx: number) => {
+              setCombination((c) => {
+                return { ...c, details: idx };
+              });
+            }}
           />
         </div>
-        <div className="flex flex-col space-y-2">
-          <button
-            className="mt-4 rounded-lg bg-white px-4 py-2"
-            onClick={() => goWild()}>
-            🤪 Go Wild
-          </button>
-          <CopyToClipboard
-            text={`${window.location.origin}?eyes=${eyes}&head=${head}&eyebrows=${eyebrows}&mouth=${mouth}&details=${details}`}>
-            <button className="mt-4 rounded-lg bg-white px-4 py-2">
-              👯‍♀️ Share
+        <div className="sticky top-28 ">
+          <div className="h-[144px] w-[144px] flex-shrink-0 rounded-lg bg-white">
+            {canvasURL === '' || <img src={canvasURL} className="object-fit" />}
+          </div>
+          <div className="flex flex-col space-y-2">
+            <button
+              className="mt-4 rounded-lg bg-white px-4 py-2"
+              onClick={() => goWild()}>
+              🤪 Go Wild
             </button>
-          </CopyToClipboard>
+            <CopyToClipboard
+              text={`${window.location.origin}?eyes=${combination.eyes}&head=${combination.head}&eyebrows=${combination.eyebrows}&mouth=${combination.mouth}&details=${combination.details}`}>
+              <button className="mt-4 rounded-lg bg-white px-4 py-2">
+                👯‍♀️ Share
+              </button>
+            </CopyToClipboard>
+          </div>
         </div>
       </div>
     </div>
